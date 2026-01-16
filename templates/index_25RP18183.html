@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Disease Risk Prediction - CHUB Hospital</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .main-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+
+        .content-wrapper {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .form-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 10px 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-predict {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+
+        .btn-reset {
+            background: #6c757d;
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+
+        .btn-reset:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .results-container {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .prediction-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+            color: white;
+        }
+
+        .probability-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.5rem; }
+            .btn-predict, .btn-reset { padding: 12px 30px; font-size: 1rem; }
+            .content-wrapper { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="main-container">
+    <div class="header">
+        <h1>Heart Disease Risk Prediction System</h1>
+        <p class="mb-0"><small>Done by: 25RP18183</small></p>
+    </div>
+
+    <div class="content-wrapper">
+        <form id="predictionForm">
+            <!-- Patient Demographics -->
+            <div class="form-section">
+                <h3>Patient Demographics</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="age" class="form-label">Age</label>
+                        <input type="number" id="age" name="age" class="form-control" required min="1" max="120">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="sex" class="form-label">Sex</label>
+                        <select id="sex" name="sex" class="form-select" required>
+                            <option value="">Select...</option>
+                            <option value="1">Male</option>
+                            <option value="0">Female</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clinical Measurements -->
+            <div class="form-section">
+                <h3>Clinical Measurements</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="cp" class="form-label">Chest Pain Type</label>
+                        <select id="cp" name="cp" class="form-select" required>
+                            <option value="">Select...</option>
+                            <option value="0">Typical Angina</option>
+                            <option value="1">Atypical Angina</option>
+                            <option value="2">Non-Anginal Pain</option>
+                            <option value="3">Asymptomatic</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="trestbps" class="form-label">Resting Blood Pressure</label>
+                        <input type="number" id="trestbps" name="trestbps" class="form-control" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="chol" class="form-label">Cholesterol</label>
+                        <input type="number" id="chol" name="chol" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="fbs" class="form-label">Fasting Blood Sugar >120 mg/dl</label>
+                        <select id="fbs" name="fbs" class="form-select" required>
+                            <option value="">Select...</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="restecg" class="form-label">Resting ECG</label>
+                        <select id="restecg" name="restecg" class="form-select" required>
+                            <option value="">Select...</option>
+                            <option value="0">Normal</option>
+                            <option value="1">ST-T Abnormality</option>
+                            <option value="2">LV Hypertrophy</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="thalach" class="form-label">Max Heart Rate Achieved</label>
+                        <input type="number" id="thalach" name="thalach" class="form-control" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exercise Test Results -->
+            <div class="form-section">
+                <h3>Exercise Test Results</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="exang" class="form-label">Exercise Induced Angina</label>
+                        <select id="exang" name="exang" class="form-select" required>
+                            <option value="">Select...</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="oldpeak" class="form-label">ST Depression (oldpeak)</label>
+                        <input type="number" step="0.1" id="oldpeak" name="oldpeak" class="form-control" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="slope" class="form-label">Slope</label>
+                        <select id="slope" name="slope" class="form-select" required>
+                            <option value="">Select...</option>
+                            <option value="0">Upsloping</option>
+                            <option value="1">Flat</option>
+                            <option value="2">Downsloping</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Diagnostics -->
+            <div class="form-section">
+                <h3>Advanced Diagnostics</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="ca" class="form-label">Number of Major Vessels</label>
+                        <select id="ca" name="ca" class="form-select" required>
+                            <option value="">Select...</option>
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="thal" class="form-label">Thalassemia</label>
+                        <select id="thal" name="thal" class="form-select" required>
+                            <option value="">Select...</option>
+                            <option value="1">Normal</option>
+                            <option value="2">Fixed Defect</option>
+                            <option value="3">Reversible Defect</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-predict">Predict Risk</button>
+                <button type="reset" class="btn btn-reset">Reset Form</button>
+            </div>
+        </form>
+
+        <div class="results-container" id="resultsContainer">
+            <div class="prediction-card">
+                <h3 class="text-center mb-4">Prediction Results</h3>
+                <div class="text-center">
+                    <h4>Risk Classification</h4>
+                    <div class="risk-badge" id="riskBadge"></div>
+                    <h5 class="mt-4">Confidence Level</h5>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidenceFill"></div>
+                    </div>
+                </div>
+                <div class="mt-5">
+                    <h5>Class Probability Distribution</h5>
+                    <div id="probabilityDistribution"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const form = document.getElementById("predictionForm");
+const riskColors = ['#28a745','#17a2b8','#ffc107','#fd7e14','#dc3545'];
+
+form.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((v,k)=>data[k]=v);
+
+    try{
+        const res = await fetch("/api/predict",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify(data)
+        });
+        const json = await res.json();
+
+        if(json.status==="success"){
+            document.getElementById("resultsContainer").style.display="block";
+            document.getElementById("riskBadge").textContent=json.prediction.class_name;
+            document.getElementById("riskBadge").style.backgroundColor=json.prediction.risk_color;
+            const confFill = document.getElementById("confidenceFill");
+            const confPercent = (json.prediction.confidence*100).toFixed(1);
+            confFill.style.width=confPercent+"%";
+            confFill.style.backgroundColor=json.prediction.risk_color;
+            confFill.textContent=confPercent+"%";
+
+            const probDiv = document.getElementById("probabilityDistribution");
+            probDiv.innerHTML="";
+            json.probabilities.forEach(p=>{
+                probDiv.innerHTML+=`<div class="probability-item"><strong>${p.class_name}</strong><span>${(p.probability*100).toFixed(1)}%</span></div>`;
+            });
+        } else {
+            alert("Error: "+json.message);
+        }
+    }catch(err){
+        alert("API not reachable. Start Flask server.");
+        console.error(err);
+    }
+});
+</script>
+</body>
+</html>
